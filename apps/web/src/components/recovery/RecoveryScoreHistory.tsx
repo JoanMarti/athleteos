@@ -1,0 +1,1 @@
+export { RecoveryScoreHistory } from './index'

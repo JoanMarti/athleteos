@@ -1,158 +1,239 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=Figtree:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design tokens ───────────────────────────────────────────────────────── */
+/* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  /* Surfaces */
-  --bg-app:        #0d0f11;
-  --bg-card:       #141618;
-  --bg-card-hover: #1a1c1f;
-  --bg-elevated:   #1f2124;
-  --bg-input:      #1a1c1f;
+  /* Dark palette */
+  --bg:          #080a0e;
+  --bg-card:     #0e1117;
+  --bg-hover:    #141820;
+  --bg-elevated: #1a2030;
+  --bg-input:    #111520;
 
   /* Borders */
-  --border:        rgba(255,255,255,0.08);
-  --border-strong: rgba(255,255,255,0.14);
+  --border:      rgba(255,255,255,0.07);
+  --border-md:   rgba(255,255,255,0.12);
+  --border-lg:   rgba(255,255,255,0.18);
 
   /* Text */
-  --text-primary:   #f0f0f0;
-  --text-secondary: #8a8f98;
-  --text-muted:     #555b65;
+  --txt:         #eef0f4;
+  --txt-2:       #8892a4;
+  --txt-3:       #4a5568;
+  --txt-inv:     #080a0e;
 
-  /* Brand accent — electric teal */
-  --accent:         #00d4a8;
-  --accent-dim:     rgba(0, 212, 168, 0.15);
-  --accent-glow:    rgba(0, 212, 168, 0.08);
+  /* Accent — electric lime */
+  --accent:      #c8f135;
+  --accent-dim:  rgba(200,241,53,0.1);
+  --accent-glow: rgba(200,241,53,0.06);
 
   /* Semantic */
-  --green:         #3dd68c;
-  --green-dim:     rgba(61, 214, 140, 0.12);
-  --amber:         #f5a623;
-  --amber-dim:     rgba(245, 166, 35, 0.12);
-  --red:           #f56565;
-  --red-dim:       rgba(245, 101, 101, 0.12);
-  --blue:          #4299e1;
-  --blue-dim:      rgba(66, 153, 225, 0.12);
+  --green:       #4ade80;
+  --green-dim:   rgba(74,222,128,0.1);
+  --amber:       #fbbf24;
+  --amber-dim:   rgba(251,191,36,0.1);
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.1);
+  --blue:        #60a5fa;
+  --blue-dim:    rgba(96,165,250,0.1);
 
-  /* Readiness colors */
-  --readiness-optimal: #00d4a8;
-  --readiness-good:    #3dd68c;
-  --readiness-moderate:#f5a623;
-  --readiness-poor:    #f56565;
-  --readiness-rest:    #8a8f98;
+  /* Readiness */
+  --r-optimal:   #c8f135;
+  --r-good:      #4ade80;
+  --r-moderate:  #fbbf24;
+  --r-poor:      #f87171;
+  --r-rest:      #8892a4;
 
   /* Typography */
-  --font-display: 'Syne', sans-serif;
-  --font-body:    'Figtree', sans-serif;
-  --font-mono:    'DM Mono', monospace;
+  --font:        'Outfit', sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
 
   /* Spacing */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  16px;
+  --r-xl:  22px;
+  --r-2xl: 32px;
+
+  /* Responsive sidebar width */
+  --sidebar-w: 240px;
 }
 
-/* ─── Base reset ──────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
+  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--bg-app);
-  color: var(--text-primary);
-  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--font);
   font-size: 15px;
-  line-height: 1.6;
-  margin: 0;
+  line-height: 1.65;
+  min-height: 100dvh;
 }
 
-/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
 
-/* ─── Typography utilities ────────────────────────────────────────────────── */
-.font-display { font-family: var(--font-display); }
-.font-mono    { font-family: var(--font-mono); }
+/* ─── Layout utilities ───────────────────────────────────────────────────── */
+.app-layout {
+  display: flex;
+  min-height: 100dvh;
+}
 
-/* ─── Card ────────────────────────────────────────────────────────────────── */
+.app-sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem;
+  max-width: calc(100vw - var(--sidebar-w));
+}
+
+/* Mobile: sidebar becomes bottom nav */
+@media (max-width: 768px) {
+  .app-layout { flex-direction: column; }
+  .app-sidebar { width: 100%; height: auto; position: fixed; bottom: 0; top: auto; z-index: 100; }
+  .app-main { max-width: 100vw; padding: 1rem; padding-bottom: 80px; }
+}
+
+/* ─── Cards ──────────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-lg);
   padding: 1.25rem;
   transition: border-color 0.15s;
 }
-.card:hover { border-color: var(--border-strong); }
+.card:hover { border-color: var(--border-md); }
 .card-elevated {
   background: var(--bg-elevated);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-md);
+  border-radius: var(--r-lg);
 }
 
-/* ─── Score ring animation ────────────────────────────────────────────────── */
-@keyframes score-draw {
-  from { stroke-dashoffset: 326; }
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; padding: 3px 9px;
+  border-radius: 99px; white-space: nowrap;
 }
-.score-ring-path { animation: score-draw 1s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.badge-accent  { background: var(--accent-dim);  color: var(--accent);  border: 1px solid rgba(200,241,53,0.2); }
+.badge-green   { background: var(--green-dim);   color: var(--green);   border: 1px solid rgba(74,222,128,0.2); }
+.badge-amber   { background: var(--amber-dim);   color: var(--amber);   border: 1px solid rgba(251,191,36,0.2); }
+.badge-red     { background: var(--red-dim);     color: var(--red);     border: 1px solid rgba(248,113,113,0.2); }
+.badge-muted   { background: rgba(255,255,255,0.05); color: var(--txt-2); border: 1px solid var(--border); }
 
-/* ─── Fade-in stagger ─────────────────────────────────────────────────────── */
+/* ─── Form elements ──────────────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--txt-3); }
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--txt-2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 20px; border-radius: var(--r-md);
+  font-family: var(--font); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; border: none; white-space: nowrap;
+  text-decoration: none;
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary  { background: var(--accent); color: var(--txt-inv); }
+.btn-primary:hover:not(:disabled)  { opacity: 0.88; }
+.btn-secondary { background: transparent; color: var(--txt); border: 1px solid var(--border-md); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--border-lg); background: rgba(255,255,255,0.04); }
+.btn-ghost    { background: transparent; color: var(--txt-2); }
+.btn-ghost:hover:not(:disabled) { color: var(--txt); background: rgba(255,255,255,0.04); }
+.btn-danger   { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-up {
-  animation: fade-up 0.4s ease forwards;
-  opacity: 0;
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
 }
-.delay-1 { animation-delay: 0.05s; }
-.delay-2 { animation-delay: 0.10s; }
-.delay-3 { animation-delay: 0.15s; }
-.delay-4 { animation-delay: 0.20s; }
-.delay-5 { animation-delay: 0.25s; }
+.animate-in { animation: fade-up 0.4s ease both; }
+.delay-1 { animation-delay: 60ms; }
+.delay-2 { animation-delay: 120ms; }
+.delay-3 { animation-delay: 180ms; }
+.delay-4 { animation-delay: 240ms; }
 
-/* ─── Badge ───────────────────────────────────────────────────────────────── */
-.badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 500; letter-spacing: 0.02em;
-  padding: 3px 9px; border-radius: 99px;
+/* ─── Readiness ring ─────────────────────────────────────────────────────── */
+.ring-path { animation: ring-draw 1s cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes ring-draw { from { stroke-dashoffset: 326; } }
+
+/* ─── Zone colors ────────────────────────────────────────────────────────── */
+.z1 { color: #60a5fa; } .z1-bg { background: #60a5fa; }
+.z2 { color: #4ade80; } .z2-bg { background: #4ade80; }
+.z3 { color: #fbbf24; } .z3-bg { background: #fbbf24; }
+.z4 { color: #f87171; } .z4-bg { background: #f87171; }
+.z5 { color: #e879f9; } .z5-bg { background: #e879f9; }
+
+/* ─── Provider colors ────────────────────────────────────────────────────── */
+.provider-strava        { color: #FC4C02; }
+.provider-garmin        { color: #007CC3; }
+.provider-suunto        { color: #E02020; }
+.provider-wahoo         { color: #E31837; }
+.provider-whoop         { color: #00ff87; }
+.provider-intervals     { color: #7B2D8B; }
+.provider-trainingpeaks { color: #0F6DB5; }
+
+/* ─── Responsive grids ───────────────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1rem; }
+
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
-.badge-green  { background: var(--green-dim);  color: var(--green);  }
-.badge-amber  { background: var(--amber-dim);  color: var(--amber);  }
-.badge-red    { background: var(--red-dim);    color: var(--red);    }
-.badge-accent { background: var(--accent-dim); color: var(--accent); }
-.badge-muted  { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
-
-/* ─── Zone bar ────────────────────────────────────────────────────────────── */
-.zone-bar-z1 { background: #4299e1; }
-.zone-bar-z2 { background: #3dd68c; }
-.zone-bar-z3 { background: #f5a623; }
-.zone-bar-z4 { background: #f56565; }
-.zone-bar-z5 { background: #e040fb; }
-
-/* ─── Insight severity ────────────────────────────────────────────────────── */
-.insight-info    { border-left-color: var(--blue);  background: var(--blue-dim); }
-.insight-warning { border-left-color: var(--amber); background: var(--amber-dim); }
-.insight-alert   { border-left-color: var(--red);   background: var(--red-dim); }
-
-/* ─── Nav link ────────────────────────────────────────────────────────────── */
-.nav-link {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px; border-radius: var(--radius-md);
-  font-size: 14px; font-weight: 500; color: var(--text-secondary);
-  text-decoration: none; transition: all 0.15s; white-space: nowrap;
+@media (max-width: 640px) {
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .card { padding: 1rem; }
+  .app-main { padding: 0.875rem; }
 }
-.nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
-.nav-link.active {
-  color: var(--text-primary);
-  background: rgba(255,255,255,0.07);
-  border: 1px solid var(--border-strong);
-}
+
+/* ─── Insight styles ─────────────────────────────────────────────────────── */
+.insight { border-left: 3px solid; border-radius: 0 var(--r-md) var(--r-md) 0; padding: 12px 14px; }
+.insight-info    { border-color: var(--blue);  background: var(--blue-dim);  }
+.insight-warning { border-color: var(--amber); background: var(--amber-dim); }
+.insight-alert   { border-color: var(--red);   background: var(--red-dim);   }

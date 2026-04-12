@@ -1,0 +1,1 @@
+export { NutritionCard } from './index'

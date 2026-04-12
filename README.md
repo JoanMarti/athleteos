@@ -1,258 +1,156 @@
 # AthleteOS
 
-**Fitness intelligence platform** for endurance athletes — unifies Strava + WHOOP data into actionable daily training recommendations.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Cloudflare CDN                         │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-            ┌───────────────┼──────────────┐
-            │               │              │
-      ┌─────▼────┐   ┌──────▼─────┐  ┌────▼──────┐
-      │ Next.js  │   │  NestJS    │  │  Expo RN  │
-      │  :3001   │   │   :3000    │  │  (mobile) │
-      └──────────┘   └──────┬─────┘  └───────────┘
-                            │
-            ┌───────────────┼──────────────┐
-            │               │              │
-      ┌─────▼────┐   ┌──────▼─────┐  ┌────▼──────┐
-      │PostgreSQL│   │   Redis    │  │  S3/R2    │
-      │+Timescale│   │  (BullMQ)  │  │ (exports) │
-      └──────────┘   └────────────┘  └───────────┘
-```
+**Plataforma web full-stack** para atletas de resistencia que unifica Strava, WHOOP, Garmin, Suunto, Wahoo, Intervals.icu y TrainingPeaks en un único motor de inteligencia deportiva.
 
 ## Stack
 
-| Layer         | Technology                          | Why                                   |
-|---------------|-------------------------------------|---------------------------------------|
-| Frontend web  | Next.js 14 (App Router) + TypeScript | SSR, Vercel deploy, React ecosystem   |
-| Mobile        | Expo + React Native                  | Shared types with web, cross-platform |
-| Backend       | NestJS + TypeScript                  | Opinionated DI, same lang as frontend |
-| Database      | PostgreSQL 16 + TimescaleDB          | Relations + efficient time-series     |
-| Cache / Queue | Redis + BullMQ                       | Token refresh, sync jobs, rate limits |
-| Auth          | Supabase Auth (JWT)                  | Ready-made + RLS policies             |
-| Infra (dev)   | Docker Compose                       | Local parity with production          |
+| Capa | Tecnología |
+|---|---|
+| Frontend | Next.js 14 (App Router) + TypeScript |
+| Auth | Supabase Auth — email, Google, Apple |
+| Base de datos | Supabase (PostgreSQL) con RLS |
+| Estado global | Zustand + TanStack Query |
+| Gráficas | Recharts |
+| Tipografía | Outfit + JetBrains Mono |
+| Monorepo | Turborepo |
 
-## Monorepo structure
+## Estructura del proyecto
 
 ```
 athleteos/
 ├── apps/
-│   ├── api/            NestJS backend
-│   │   └── src/
-│   │       ├── auth/
-│   │       ├── users/
-│   │       ├── connected-accounts/   OAuth flows + token encryption
-│   │       ├── sync/                 Strava + WHOOP adapters + BullMQ jobs
-│   │       ├── activities/
-│   │       ├── recovery/
-│   │       ├── metrics/              Readiness score calculation
-│   │       ├── recommendations/      Rule engine
-│   │       ├── insights/             Improvement insight detection
-│   │       ├── webhooks/             Strava + WHOOP event listeners
-│   │       └── dashboard/            Aggregated dashboard endpoints
-│   └── web/            Next.js frontend
+│   └── web/                    # Next.js 14 app
 │       └── src/
 │           ├── app/
-│           │   ├── today/            Main daily dashboard
-│           │   ├── week/             Weekly plan + load chart
-│           │   ├── recovery/         HRV + sleep + ATL/CTL charts
-│           │   ├── activity/[id]/    Activity detail
-│           │   └── profile/          Settings + connected accounts
+│           │   ├── (auth)/     # Login, signup (sin sidebar)
+│           │   ├── (app)/      # App autenticada con sidebar
+│           │   │   ├── app/    # Dashboard "Hoy"
+│           │   │   ├── week/   # Vista semanal + ATL/CTL/TSB
+│           │   │   ├── recovery/  # HRV, sueño, recovery score
+│           │   │   ├── activities/ # Lista de actividades
+│           │   │   └── profile/    # Perfil + métricas + integraciones
+│           │   ├── onboarding/ # Wizard 5 pasos
+│           │   └── api/
+│           │       ├── integrations/
+│           │       │   ├── [provider]/auth-url/  # OAuth URL generator
+│           │       │   ├── [provider]/callback/  # OAuth callback
+│           │       │   ├── strava/sync/           # Sync Strava activities
+│           │       │   ├── whoop/sync/            # Sync WHOOP recovery
+│           │       │   ├── intervals/sync/        # Sync Intervals.icu
+│           │       │   └── connect/               # API key connect (Intervals)
+│           │       ├── metrics/calculate/         # ATL/CTL/TSB/Readiness
+│           │       ├── recommendations/generate/  # Rule engine
+│           │       └── webhooks/strava/           # Strava webhook listener
 │           ├── components/
-│           │   ├── layout/           Sidebar, TopBar
-│           │   ├── today/            ReadinessCard, RecommendationCard, etc.
-│           │   ├── week/             WeeklyLoadChart, WeekPlanGrid
-│           │   ├── recovery/         HRVTrendChart, SleepBreakdownChart
-│           │   └── providers/        QueryProvider
-│           └── hooks/                useApi.ts (TanStack Query)
+│           │   ├── layout/     # AppSidebar (desktop + mobile bottom nav)
+│           │   ├── dashboard/  # ReadinessCard, RecommendationCard, etc.
+│           │   ├── week/       # WeeklyLoadChart, WeekPlanGrid, ATLCTLChart
+│           │   ├── recovery/   # HRVTrendChart, SleepBreakdownChart
+│           │   ├── activities/ # ActivityList con filtros y detalle expandible
+│           │   ├── profile/    # IntegrationsPanel, AthleteMetricsPanel
+│           │   └── providers/  # AppProviders (QueryClient + AuthInit)
+│           ├── stores/         # Zustand: authStore
+│           ├── lib/            # Supabase client helpers
+│           └── middleware.ts   # Route protection
+│
 ├── packages/
-│   ├── types/          Shared TypeScript interfaces (domain entities + DTOs)
-│   ├── utils/          Training calculations (TSS, ATL, CTL, zones, readiness)
-│   └── mocks/          Strava + WHOOP mock data for development
-├── infra/
-│   ├── docker-compose.yml
-│   └── init.sql        Full schema + TimescaleDB + RLS policies
-├── .env.example
-├── turbo.json
-└── README.md
+│   ├── types/                  # Tipos compartidos: providers, entidades, DTOs
+│   └── utils/                  # Cálculos: TSS, ATL, CTL, zonas, readiness
+│
+└── supabase/
+    └── migrations/             # Schema completo con RLS
 ```
 
-## Prerequisites
+## Integraciones soportadas
 
-- Node.js 20+
-- Docker + Docker Compose
-- pnpm 9+ (or npm 10+)
+| Proveedor | Auth | Actividades | Recuperación | HRV |
+|---|---|---|---|---|
+| **Strava** | OAuth 2 | ✅ | ❌ | ❌ |
+| **WHOOP** | OAuth 2 | ❌ | ✅ | ✅ |
+| **Garmin** | OAuth 2 | ✅ | ✅ | ✅ |
+| **Suunto** | OAuth 2 | ✅ | ❌ | ❌ |
+| **Wahoo** | OAuth 2 | ✅ | ❌ | ❌ |
+| **Intervals.icu** | API Key | ✅ | ❌ | ❌ |
+| **TrainingPeaks** | OAuth 2 | ✅ | ❌ | ❌ |
+| Polar | OAuth 2 | ✅ | ✅ | ✅ |
+| COROS | OAuth 2 | ✅ | ❌ | ❌ |
 
-## Quick start
+> Garmin, Suunto, TrainingPeaks, Polar y COROS requieren aprobación comercial de la API.
+
+## Setup rápido
 
 ```bash
-# 1. Clone and install
-git clone https://github.com/your-org/athleteos
-cd athleteos
+# 1. Instalar dependencias
 pnpm install
 
-# 2. Set up environment
+# 2. Configurar variables de entorno
 cp .env.example .env
-# Edit .env with your values (Supabase keys, etc.)
-# For local dev, ENABLE_STRAVA_MOCK=true and ENABLE_WHOOP_MOCK=true work out of the box
+# Editar .env con tus claves de Supabase y providers
 
-# 3. Start infrastructure
-cd infra && docker compose up -d && cd ..
+# 3. Aplicar schema en Supabase
+# Copiar supabase/migrations/001_initial_schema.sql
+# Ejecutar en el SQL Editor de Supabase Dashboard
 
-# 4. Run database migrations
-pnpm db:migrate
-
-# 5. Seed with 90 days of mock athlete data
-pnpm db:seed
-
-# 6. Start all apps
+# 4. Iniciar en desarrollo
 pnpm dev
-
-# Apps running at:
-# → Frontend:  http://localhost:3001
-# → API:       http://localhost:3000
-# → Swagger:   http://localhost:3000/api/docs
+# → http://localhost:3000
 ```
 
-## Environment variables
+## Variables de entorno clave
 
-See `.env.example` for the full list. Critical ones:
+```env
+NEXT_PUBLIC_SUPABASE_URL=         # URL de tu proyecto Supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=    # Anon key pública
+SUPABASE_SERVICE_ROLE_KEY=        # Service role (solo servidor)
+ENCRYPTION_KEY=                   # 64 char hex para AES-256-GCM
+STRAVA_CLIENT_ID=                 # App Strava en developers.strava.com
+STRAVA_CLIENT_SECRET=
+WHOOP_CLIENT_ID=                  # App WHOOP en developer.whoop.com
+WHOOP_CLIENT_SECRET=
+```
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_URL` | Redis connection string |
-| `ENCRYPTION_KEY` | 64-char hex key for AES-256-GCM token encryption |
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-side Supabase key |
-| `STRAVA_CLIENT_ID` / `_SECRET` | From Strava API settings |
-| `WHOOP_CLIENT_ID` / `_SECRET` | From WHOOP Developer Portal |
-| `ENABLE_STRAVA_MOCK` | `true` to use mock data (no real Strava account needed) |
-| `ENABLE_WHOOP_MOCK` | `true` to use mock data (no real WHOOP account needed) |
-
-Generate encryption key:
+Genera ENCRYPTION_KEY:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-## API endpoints
+## Autenticación
 
-Full docs at `http://localhost:3000/api/docs` (Swagger UI).
+- Email + contraseña
+- Google OAuth (configurar en Supabase Dashboard → Auth → Providers)
+- Apple OAuth (configurar en Supabase Dashboard → Auth → Providers)
+- Flujo: registro → email de confirmación → onboarding (5 pasos) → dashboard
 
-Key endpoints:
+## Motor de recomendaciones
 
-| Method | Path | Description |
+9 reglas en orden de prioridad:
+
+| Regla | Condición | Resultado |
 |---|---|---|
-| `GET` | `/api/v1/dashboard/today` | Today's readiness + recommendation + insights |
-| `GET` | `/api/v1/dashboard/week` | Weekly plan + load breakdown |
-| `GET` | `/api/v1/connected-accounts` | List connected providers |
-| `GET` | `/api/v1/connected-accounts/strava/connect` | Get Strava OAuth URL |
-| `GET` | `/api/v1/connected-accounts/strava/callback` | Strava OAuth callback |
-| `GET` | `/api/v1/connected-accounts/whoop/connect` | Get WHOOP OAuth URL |
-| `GET` | `/api/v1/connected-accounts/whoop/callback` | WHOOP OAuth callback |
-| `DELETE` | `/api/v1/connected-accounts/:provider` | Disconnect provider |
-| `GET` | `/api/v1/activities` | Paginated activity list |
-| `GET` | `/api/v1/recovery` | Recovery sessions + sleep metrics |
-| `PATCH` | `/api/v1/recommendations/:id` | Mark session done/skipped |
-| `POST` | `/api/v1/sync/:provider` | Trigger manual sync |
-| `POST` | `/api/v1/webhooks/strava` | Strava webhook listener |
-| `POST` | `/api/v1/webhooks/whoop` | WHOOP webhook listener |
+| R001 | TSB < -35 o 6+ días consecutivos de carga alta | Descanso obligatorio |
+| R002 | Readiness < 35 o etiqueta "rest_day" | Solo recuperación activa |
+| R003 | Viernes + 3+ días duros | Descarga deliberada |
+| R004 | ≤2 semanas para carrera | Tapering |
+| R005 | Readiness < 55 o TSB < -15 | Endurance Z2 |
+| R006 | Readiness ≥ 70 + objetivo FTP | Intervalos de umbral |
+| R007 | Readiness ≥ 70 + prep. carrera | VO2max |
+| R008 | Fin de semana + readiness ≥ 75 | Salida larga |
+| R009 | Default | Aeróbico moderado |
 
-## Recommendation engine
+## Seguridad
 
-The rule engine (`apps/api/src/recommendations/recommendation-engine.ts`) applies rules in priority order:
+- Tokens OAuth cifrados con AES-256-GCM antes de guardar en DB
+- Row Level Security activo en todas las tablas
+- JWT validado en middleware para todas las rutas `/app/*`
+- Tokens nunca expuestos al cliente
+- Disclaimer en todas las recomendaciones nutricionales
 
-| Rule | Condition | Output |
-|---|---|---|
-| R001 | TSB < -35 or 6+ consecutive high-load days | Complete rest |
-| R002 | Readiness score < 35 | Recovery session only |
-| R003 | Friday + 3+ hard days this week | Easy or rest |
-| R004 | Within 2 weeks of race goal | Taper protocol |
-| R005 | Score < 55 or TSB < -15 | Z2 endurance |
-| R006 | Score ≥ 70 + FTP goal | Threshold intervals |
-| R007 | Score ≥ 70 + race prep goal | VO2max session |
-| R008 | Score ≥ 82 (optimal) | Best session for goal |
-| R009 | Default | Moderate endurance |
+## Responsive
 
-Readiness score formula:
-```
-Score = HRV_component × 0.35 + Sleep_component × 0.30 + Load_component × 0.25 + Trend × 0.10
-```
+- Desktop: sidebar fijo izquierdo (240px)
+- Mobile (≤768px): sidebar oculto, bottom navigation fija con 5 iconos
+- Grids adaptivos: 4col → 2col → 1col según breakpoint
 
-## OAuth token security
+## Disclaimer
 
-Tokens are **never stored in plaintext**. Flow:
-1. User initiates OAuth → backend generates state with userId
-2. Provider redirects back with code → backend exchanges for tokens
-3. Tokens encrypted with AES-256-GCM before DB storage
-4. Decrypted only in `ConnectedAccountsService.getValidAccessToken()` for API calls
-5. Frontend never sees raw tokens
-
-## Data normalization
-
-Each provider has an adapter that maps raw data to our schema:
-
-| Provider | Training Load | Recovery | Notes |
-|---|---|---|---|
-| Strava | TSS (power) or HR-TRIMP | ❌ | Webhooks for real-time |
-| WHOOP | Strain → normalized TSS | Recovery score, HRV | Webhooks for real-time |
-| Garmin | Training Effect → normalized | HRV, sleep | V2 — needs API approval |
-
-## Running tests
-
-```bash
-# All tests
-pnpm test
-
-# Backend unit tests
-pnpm test --filter=@athleteos/api
-
-# Watch mode
-pnpm test:watch --filter=@athleteos/api
-
-# Coverage
-pnpm test:cov --filter=@athleteos/api
-```
-
-## Deployment
-
-**Backend (Railway/Render):**
-```bash
-# Build
-pnpm build --filter=@athleteos/api
-
-# Start
-node apps/api/dist/main.js
-```
-
-**Frontend (Vercel):**
-- Connect repo → set root directory to `apps/web`
-- Add all env vars from `.env.example`
-- Vercel auto-detects Next.js
-
-**Database (Supabase):**
-- Create project → run `infra/init.sql` in SQL editor
-- Enable TimescaleDB extension in Supabase dashboard
-
-## Security checklist
-
-- [x] AES-256-GCM encryption for all OAuth tokens
-- [x] Tokens never logged or exposed to frontend
-- [x] Helmet + CORS configured on API
-- [x] Input validation on all endpoints (class-validator)
-- [x] Rate limiting (100 req/min)
-- [x] Row Level Security on all tables
-- [x] GDPR: user data deletion endpoint
-- [x] Nutrition disclaimer on all recommendations
-
-## Disclaimers
-
-AthleteOS recommendations are **orientative only** and based on wearable sensor data. They do not constitute medical, nutritional, or professional training advice. Consult a qualified professional before making significant changes to your training or nutrition.
-
-HRV, recovery scores, and readiness metrics are estimates derived from consumer wearables and may not accurately reflect your actual physiological state.
-
-## License
-
-MIT
+Las recomendaciones de AthleteOS son orientativas y basadas en datos de wearables. No constituyen asesoramiento médico o nutricional profesional.

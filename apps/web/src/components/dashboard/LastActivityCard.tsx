@@ -1,0 +1,1 @@
+export { LastActivityCard } from './index'
