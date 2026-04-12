@@ -1,16 +1,19 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ES2017",
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
     "incremental": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./src/*"],
-      "@athleteos/types": ["../../packages/types/src/index.ts"],
-      "@athleteos/utils": ["../../packages/utils/src/index.ts"]
+      "@athleteos/types": ["./src/lib/athleteos/types.ts"],
+      "@athleteos/utils": ["./src/lib/athleteos/utils.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
