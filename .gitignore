@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+apps/web/node_modules/
+packages/*/node_modules/
+
+# Build outputs
+.next/
+apps/web/.next/
+apps/web/out/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo

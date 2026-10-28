@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=Figtree:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design tokens ───────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg-app:        #0d0f11;
+  --bg-card:       #141618;
+  --bg-card-hover: #1a1c1f;
+  --bg-elevated:   #1f2124;
+  --bg-input:      #1a1c1f;
+
+  /* Borders */
+  --border:        rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+
+  /* Text */
+  --text-primary:   #f0f0f0;
+  --text-secondary: #8a8f98;
+  --text-muted:     #555b65;
+
+  /* Brand accent — electric teal */
+  --accent:         #00d4a8;
+  --accent-dim:     rgba(0, 212, 168, 0.15);
+  --accent-glow:    rgba(0, 212, 168, 0.08);
+
+  /* Semantic */
+  --green:         #3dd68c;
+  --green-dim:     rgba(61, 214, 140, 0.12);
+  --amber:         #f5a623;
+  --amber-dim:     rgba(245, 166, 35, 0.12);
+  --red:           #f56565;
+  --red-dim:       rgba(245, 101, 101, 0.12);
+  --blue:          #4299e1;
+  --blue-dim:      rgba(66, 153, 225, 0.12);
+
+  /* Readiness colors */
+  --readiness-optimal: #00d4a8;
+  --readiness-good:    #3dd68c;
+  --readiness-moderate:#f5a623;
+  --readiness-poor:    #f56565;
+  --readiness-rest:    #8a8f98;
+
+  /* Typography */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'Figtree', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+
+  /* Spacing */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+/* ─── Base reset ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* ─── Typography utilities ────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ─── Card ────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--border-strong); }
+.card-elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+/* ─── Score ring animation ────────────────────────────────────────────────── */
+@keyframes score-draw {
+  from { stroke-dashoffset: 326; }
+}
+.score-ring-path { animation: score-draw 1s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* ─── Fade-in stagger ─────────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s ease forwards;
+  opacity: 0;
+}
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.10s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.20s; }
+.delay-5 { animation-delay: 0.25s; }
+
+/* ─── Badge ───────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.02em;
+  padding: 3px 9px; border-radius: 99px;
+}
+.badge-green  { background: var(--green-dim);  color: var(--green);  }
+.badge-amber  { background: var(--amber-dim);  color: var(--amber);  }
+.badge-red    { background: var(--red-dim);    color: var(--red);    }
+.badge-accent { background: var(--accent-dim); color: var(--accent); }
+.badge-muted  { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+
+/* ─── Zone bar ────────────────────────────────────────────────────────────── */
+.zone-bar-z1 { background: #4299e1; }
+.zone-bar-z2 { background: #3dd68c; }
+.zone-bar-z3 { background: #f5a623; }
+.zone-bar-z4 { background: #f56565; }
+.zone-bar-z5 { background: #e040fb; }
+
+/* ─── Insight severity ────────────────────────────────────────────────────── */
+.insight-info    { border-left-color: var(--blue);  background: var(--blue-dim); }
+.insight-warning { border-left-color: var(--amber); background: var(--amber-dim); }
+.insight-alert   { border-left-color: var(--red);   background: var(--red-dim); }
+
+/* ─── Nav link ────────────────────────────────────────────────────────────── */
+.nav-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: var(--radius-md);
+  font-size: 14px; font-weight: 500; color: var(--text-secondary);
+  text-decoration: none; transition: all 0.15s; white-space: nowrap;
+}
+.nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.nav-link.active {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--border-strong);
+}
