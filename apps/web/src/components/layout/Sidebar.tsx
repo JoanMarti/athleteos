@@ -1,18 +1,22 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useDataSources } from '@/hooks/useDataSources'
+import { SOURCE_CONFIGS } from '@/lib/dataSources'
 
 const NAV = [
-  { href: '/today',    label: 'Today',    icon: '◎', dot: '#00d4a8' },
-  { href: '/week',     label: 'Week',     icon: '▦', dot: '#3dd68c' },
-  { href: '/health',   label: 'Health',   icon: '◑', dot: '#9f7aea' },
-  { href: '/recovery', label: 'Recovery', icon: '◑', dot: '#f5a623' },
-  { href: '/activity', label: 'Activity', icon: '◈', dot: '#4299e1' },
-  { href: '/profile',  label: 'Profile',  icon: '◉', dot: '#8a8f98' },
+  { href: '/today',    label: 'Today',    dot: '#00d4a8' },
+  { href: '/week',     label: 'Week',     dot: '#3dd68c' },
+  { href: '/health',   label: 'Health',   dot: '#9f7aea' },
+  { href: '/recovery', label: 'Recovery', dot: '#f5a623' },
+  { href: '/connect',  label: 'Fuentes',  dot: '#4299e1' },
 ]
+
+const SOURCES = ['strava', 'fitbit', 'suunto'] as const
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { connected, loading, isConnected } = useDataSources()
 
   return (
     <aside style={{
@@ -32,13 +36,10 @@ export function Sidebar() {
       <div style={{ marginBottom: '1.75rem', paddingLeft: 4 }}>
         <div style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 20,
-          fontWeight: 700,
+          fontSize: 20, fontWeight: 700,
           color: 'var(--text-primary)',
           letterSpacing: '-0.5px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
+          display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <span style={{
             width: 28, height: 28, borderRadius: 8,
@@ -57,15 +58,44 @@ export function Sidebar() {
       {/* Nav links */}
       {NAV.map(({ href, label, dot }) => {
         const active = pathname === href || pathname.startsWith(href + '/')
+        const isConnect = href === '/connect'
+        const hasData = !loading && connected.length > 0
         return (
           <Link key={href} href={href} className={`nav-link${active ? ' active' : ''}`}>
             <span style={{
               width: 8, height: 8, borderRadius: '50%',
-              background: active ? dot : 'var(--border-strong)',
+              background: active ? dot : isConnect && !hasData ? 'var(--amber)' : 'var(--border-strong)',
               flexShrink: 0,
+              boxShadow: isConnect && !hasData && !active ? '0 0 6px var(--amber)' : 'none',
               transition: 'background 0.15s',
             }} />
             {label}
+            {isConnect && !loading && connected.length === 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                fontSize: 9,
+                padding: '2px 6px',
+                borderRadius: 10,
+                background: 'rgba(245,166,35,0.15)',
+                color: 'var(--amber)',
+                border: '1px solid rgba(245,166,35,0.3)',
+              }}>
+                Setup
+              </span>
+            )}
+            {isConnect && !loading && connected.length > 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                fontSize: 9,
+                padding: '2px 6px',
+                borderRadius: 10,
+                background: 'rgba(0,212,168,0.1)',
+                color: 'var(--accent)',
+                border: '1px solid rgba(0,212,168,0.25)',
+              }}>
+                {connected.length} ●
+              </span>
+            )}
           </Link>
         )
       })}
@@ -79,39 +109,52 @@ export function Sidebar() {
           borderRadius: 'var(--radius-md)',
         }}>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-            Active goal
+            Objetivo activo
           </div>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
             FTP +15W
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-            42 days remaining
+            42 días restantes
           </div>
           <div style={{ marginTop: 10, height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ width: '63%', height: '100%', background: 'var(--accent)', borderRadius: 2 }} />
           </div>
           <div style={{ marginTop: 5, fontSize: 10, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
-            <span>248W now</span>
-            <span>263W target</span>
+            <span>248W ahora</span>
+            <span>263W objetivo</span>
           </div>
         </div>
 
-        {/* Connected accounts status */}
+        {/* Live source status dots */}
         <div style={{ marginTop: 10, display: 'flex', gap: 6, alignItems: 'center', padding: '0 2px' }}>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {[
-              { name: 'Fitbit',  color: '#00B0B9', active: true },
-              { name: 'Strava',  color: '#FC4C02', active: true },
-              { name: 'Suunto',  color: '#E8000B', active: true },
-            ].map(({ name, color, active }) => (
-              <div key={name} title={`${name}: ${active ? 'connected' : 'disconnected'}`} style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: active ? color : 'var(--text-muted)',
-                boxShadow: active ? `0 0 6px ${color}66` : 'none',
-              }} />
-            ))}
-          </div>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>3 sources connected</span>
+          {!loading && (
+            <>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {SOURCES.map(id => {
+                  const active = isConnected(id)
+                  const color = SOURCE_CONFIGS[id].color
+                  return (
+                    <div
+                      key={id}
+                      title={`${SOURCE_CONFIGS[id].name}: ${active ? 'conectado' : 'sin conectar'}`}
+                      style={{
+                        width: 8, height: 8, borderRadius: '50%',
+                        background: active ? color : 'rgba(255,255,255,0.15)',
+                        boxShadow: active ? `0 0 6px ${color}88` : 'none',
+                        transition: 'all 0.3s',
+                      }}
+                    />
+                  )
+                })}
+              </div>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                {connected.length === 0
+                  ? 'Sin fuentes'
+                  : `${connected.length} fuente${connected.length > 1 ? 's' : ''}`}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </aside>
