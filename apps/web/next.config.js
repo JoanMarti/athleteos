@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',          // static HTML export — works with GitHub Pages
+  basePath: '/athleteos',    // GitHub Pages serves at /athleteos sub-path
   trailingSlash: true,       // /health → /health/index.html
   // Skip type-checking during build (mock data has minor type mismatches)
   typescript: { ignoreBuildErrors: true },
